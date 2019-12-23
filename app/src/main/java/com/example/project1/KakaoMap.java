@@ -11,13 +11,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,56 +30,59 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import net.daum.mf.map.api.MapView;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public class Find_Location extends AppCompatActivity implements OnMapReadyCallback {
+public class KakaoMap extends AppCompatActivity {
     SharedPreferences sharedPreferences;
-    private GoogleMap mMap;
+
 
     private GpsTracker gpsTracker;
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
 
-    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
     String latitude1, longitude1;
-    String name, age;
+    String name, age, item1, item2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_find__location);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        setContentView(R.layout.activity_kakao_map);
 
-        sharedPreferences= getSharedPreferences("Mypref", Context.MODE_PRIVATE);
-        name = sharedPreferences.getString( "name", "" );
-        age = sharedPreferences.getString( "age", "" );
+        final MapView mapView = new MapView(this);
+
+        ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
+        mapViewContainer.addView(mapView);
+
+        sharedPreferences = getSharedPreferences("Mypref", Context.MODE_PRIVATE);
+        name = sharedPreferences.getString("name", "");
+        age = sharedPreferences.getString("age", "");
+        item1 = sharedPreferences.getString("item1", "");
+        item2 = sharedPreferences.getString("item2", "");
 
         if (!checkLocationServicesStatus()) {
             showDialogForLocationServiceSetting();
-        }else {
+        } else {
             checkRunTimePermission();
         }
 
-        final TextView textview_address = (TextView)findViewById(R.id.textview);
+        final TextView textview_address = (TextView) findViewById(R.id.textview);
 
         Button ShowLocationButton = (Button) findViewById(R.id.button);
         Button SendLocationButton = (Button) findViewById(R.id.button2);
 
-        ShowLocationButton.setOnClickListener(new View.OnClickListener()
-        {
+        ShowLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0)
-            {
-                gpsTracker = new GpsTracker(Find_Location.this);
+            public void onClick(View arg0) {
+                gpsTracker = new GpsTracker(KakaoMap.this);
 
                 double latitude = gpsTracker.getLatitude();
                 double longitude = gpsTracker.getLongitude();
@@ -85,47 +93,33 @@ public class Find_Location extends AppCompatActivity implements OnMapReadyCallba
                 String address = getCurrentAddress(latitude, longitude);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 textview_address.setText(address);
-
-                Toast.makeText(Find_Location.this, "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
+                mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithHeading);
+                Toast.makeText(KakaoMap.this, "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
             }
         });
 
         SendLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Find_Location.this, MainActivity.class);
+                Intent intent = new Intent(KakaoMap.this, MainActivity.class);
                 intent.putExtra("latitude", latitude1);
                 intent.putExtra("longitude", longitude1);
                 intent.putExtra("name", name);
-                intent.putExtra("age",age);
+                intent.putExtra("age", age);
+                intent.putExtra("item1", item1);
+                intent.putExtra("item2", item2);
                 startActivity(intent);
             }
         });
     }
 
-    @Override
-    public void onMapReady(final GoogleMap googleMap) {
-
-        mMap = googleMap;
-
-        LatLng SEOUL = new LatLng(38.630358, 127.456113);
-
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(SEOUL);
-        markerOptions.title("청주");
-        markerOptions.snippet("한국의 수도");
-        mMap.addMarker(markerOptions);
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-    }
 
     @Override
     public void onRequestPermissionsResult(int permsRequestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grandResults) {
 
-        if ( permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == REQUIRED_PERMISSIONS.length) {
+        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == REQUIRED_PERMISSIONS.length) {
 
             // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
 
@@ -141,34 +135,32 @@ public class Find_Location extends AppCompatActivity implements OnMapReadyCallba
                 }
             }
 
-            if ( check_result ) {
+            if (check_result) {
                 //위치 값을 가져올 수 있음
                 ;
-            }
-
-            else {
+            } else {
                 // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다.2 가지 경우가 있습니다.
 
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
                         || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])) {
 
-                    Toast.makeText(Find_Location.this, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(KakaoMap.this, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요.", Toast.LENGTH_LONG).show();
                     finish();
 
-                }else {
-                    Toast.makeText(Find_Location.this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(KakaoMap.this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
                 }
             }
 
         }
     }
 
-    void checkRunTimePermission(){
+    void checkRunTimePermission() {
         //런타임 퍼미션 처리
         // 1. 위치 퍼미션을 가지고 있는지 체크합니다.
-        int hasFineLocationPermission = ContextCompat.checkSelfPermission(Find_Location.this,
+        int hasFineLocationPermission = ContextCompat.checkSelfPermission(KakaoMap.this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
-        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(Find_Location.this,
+        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(KakaoMap.this,
                 Manifest.permission.ACCESS_COARSE_LOCATION);
 
         if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
@@ -179,23 +171,23 @@ public class Find_Location extends AppCompatActivity implements OnMapReadyCallba
 
         } else {  //2. 퍼미션 요청을 허용한 적이 없다면 퍼미션 요청이 필요합니다. 2가지 경우(3-1, 4-1)가 있습니다.
             // 3-1. 사용자가 퍼미션 거부를 한 적이 있는 경우에는
-            if (ActivityCompat.shouldShowRequestPermissionRationale(Find_Location.this, REQUIRED_PERMISSIONS[0])) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(KakaoMap.this, REQUIRED_PERMISSIONS[0])) {
                 // 3-2. 요청을 진행하기 전에 사용자가에게 퍼미션이 필요한 이유를 설명해줄 필요가 있습니다.
-                Toast.makeText(Find_Location.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
+                Toast.makeText(KakaoMap.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
                 // 3-3. 사용자게에 퍼미션 요청을 합니다. 요청 결과는 onRequestPermissionResult에서 수신됩니다.
-                ActivityCompat.requestPermissions(Find_Location.this, REQUIRED_PERMISSIONS,
+                ActivityCompat.requestPermissions(KakaoMap.this, REQUIRED_PERMISSIONS,
                         PERMISSIONS_REQUEST_CODE);
 
             } else {
                 // 4-1. 사용자가 퍼미션 거부를 한 적이 없는 경우에는 퍼미션 요청을 바로 합니다.
                 // 요청 결과는 onRequestPermissionResult에서 수신됩니다.
-                ActivityCompat.requestPermissions(Find_Location.this, REQUIRED_PERMISSIONS,
+                ActivityCompat.requestPermissions(KakaoMap.this, REQUIRED_PERMISSIONS,
                         PERMISSIONS_REQUEST_CODE);
             }
         }
     }
 
-    public String getCurrentAddress( double latitude, double longitude) {
+    public String getCurrentAddress(double latitude, double longitude) {
         //지오코더... GPS를 주소로 변환
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses;
@@ -221,13 +213,13 @@ public class Find_Location extends AppCompatActivity implements OnMapReadyCallba
         }
 
         Address address = addresses.get(0);
-        return address.getAddressLine(0).toString()+"\n";
+        return address.getAddressLine(0).toString() + "\n";
 
     }
 
     //여기부터는 GPS 활성화를 위한 메소드들
     private void showDialogForLocationServiceSetting() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(Find_Location.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(KakaoMap.this);
         builder.setTitle("위치 서비스 비활성화");
         builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다.\n"
                 + "위치 설정을 수정하실래요?");

@@ -45,6 +45,7 @@
 
         <EditText
             android:id="@+id/userage"
+            android:inputType="number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="나이"
@@ -54,8 +55,56 @@
 
     </LinearLayout>
 
+
     <LinearLayout
         android:id="@+id/line3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+        <ImageView
+            android:layout_width="75dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/age">
+        </ImageView>
+
+        <EditText
+            android:id="@+id/item1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="item"
+            android:gravity="center_horizontal"
+            android:textSize="25dp">
+        </EditText>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/line4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+        <ImageView
+            android:layout_width="75dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/age">
+        </ImageView>
+
+        <EditText
+            android:id="@+id/item2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="item"
+            android:gravity="center_horizontal"
+            android:textSize="25dp">
+        </EditText>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/line5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -72,8 +121,9 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:hint="위치"
+            android:text="위치찾기 버튼을 클릭해주세요."
             android:gravity="center_horizontal"
-            android:textSize="25dp">
+            android:textSize="15dp">
         </EditText>
 
         <Button
@@ -91,18 +141,20 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/line4"
+        android:id="@+id/line6"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="25dp">
+        android:layout_marginTop="25dp"
+        android:layout_gravity="center"
+        android:gravity="center">
 
         <Button
             android:id="@+id/check1"
             android:background="@drawable/round_corner"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="확인"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="요청하기"
             android:textSize="20dp"
             android:textColor="#000000"
             android:textStyle="bold"

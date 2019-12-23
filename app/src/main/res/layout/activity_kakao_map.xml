@@ -5,14 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Find_Location">
+    tools:context=".KakaoMap">
 
-    <fragment
+    <RelativeLayout
+        android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment">
-    </fragment>
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:id="@+id/line1"
